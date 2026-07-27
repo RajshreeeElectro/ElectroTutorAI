@@ -1,80 +1,139 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import "./AITutor.css";
+
+type Message = {
+  question: string;
+  answer: string;
+};
 
 function AITutor() {
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const handleAsk = () => {
-    const q = question.toLowerCase();
-
-    if (q.includes("transistor")) {
-      setAnswer(
-        "A transistor is a semiconductor device used for switching and amplification."
-      );
-    } else if (q.includes("resistor")) {
-      setAnswer(
-        "A resistor limits the flow of electric current in a circuit."
-      );
-    } else if (q.includes("capacitor")) {
-      setAnswer(
-        "A capacitor stores electrical energy in the form of an electric field."
-      );
-    } else if (q.includes("diode")) {
-      setAnswer(
-        "A diode allows current to flow in one direction and blocks it in the opposite direction."
-      );
-    } else {
-      setAnswer(
-        "Sorry, I don't have an answer for that yet. This feature will be connected to a real AI backend later."
-      );
+  const handleAsk = async () => {
+    if (!question.trim()) {
+      alert("Please enter a question.");
+      return;
     }
+
+    const currentQuestion = question;
+
+    setQuestion("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: currentQuestion,
+        }),
+      });
+
+      const data = await response.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          question: currentQuestion,
+          answer: data.answer,
+        },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          question: currentQuestion,
+          answer:
+            "❌ Unable to connect to the AI server. Please try again.",
+        },
+      ]);
+    }
+
+    setLoading(false);
+  };
+
+  const copyAnswer = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert("Answer copied!");
   };
 
   return (
-    <div style={{ padding: "30px" }}>
-      <h1>🤖 ElectroTutor AI</h1>
+    <div className="ai-container">
+      <h1 className="ai-title">🤖 ElectroTutorAI</h1>
 
-      <p>Ask your Electronics questions below:</p>
+      <p className="ai-subtitle">
+        Ask any Electrical or Electronics Engineering question.
+      </p>
 
-      <input
-        type="text"
-        placeholder="Ask your Electronics question..."
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          borderRadius: "6px",
-        }}
-      />
-
-      <br />
-      <br />
-
-      <button
-        onClick={handleAsk}
-        style={{
-          padding: "10px 20px",
-          cursor: "pointer",
-        }}
-      >
-        Ask AI
-      </button>
-
-      {answer && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "15px",
-            backgroundColor: "#f4f4f4",
-            borderRadius: "8px",
-            maxWidth: "600px",
+      <div className="input-area">
+        <textarea
+          className="question-box"
+          rows={5}
+          value={question}
+          placeholder="Ask your question..."
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleAsk();
+            }
           }}
+        />
+
+        <button
+          className="ask-btn"
+          onClick={handleAsk}
+          disabled={loading}
         >
-          <h3>Answer:</h3>
-          <p>{answer}</p>
+          {loading ? "Thinking..." : "Ask AI"}
+        </button>
+
+        <div className="action-bar">
+          <button
+            className="clear-btn"
+            onClick={() => setMessages([])}
+            disabled={messages.length === 0}
+          >
+            🗑 Clear Chat
+          </button>
         </div>
-      )}
+      </div>
+
+      <div className="chat-area">
+        {messages.map((msg, index) => (
+          <div key={index} className="message-card">
+            <div className="user-label">👤 You</div>
+
+            <p>{msg.question}</p>
+
+            <div className="ai-label">🤖 ElectroTutorAI</div>
+
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {msg.answer}
+            </ReactMarkdown>
+
+            <button
+              className="ask-btn"
+              style={{ marginTop: 15 }}
+              onClick={() => copyAnswer(msg.answer)}
+            >
+              📋 Copy Answer
+            </button>
+          </div>
+        ))}
+
+        {loading && (
+          <div className="loading">
+            🤖 Thinking...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

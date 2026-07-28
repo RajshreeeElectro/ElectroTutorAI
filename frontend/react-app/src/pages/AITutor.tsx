@@ -25,7 +25,7 @@ function AITutor() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/ask", {
+    const response = await fetch("https://https://electrotutorai-1.onrender.com/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

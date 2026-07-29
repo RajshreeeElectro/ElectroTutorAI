@@ -25,15 +25,22 @@ function AITutor() {
     setLoading(true);
 
     try {
-    const response = await fetch("https://https://electrotutorai-1.onrender.com/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: currentQuestion,
-        }),
-      });
+      const response = await fetch(
+        "https://electrotutorai-2.onrender.com/ask",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: currentQuestion,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Server Error: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -45,17 +52,19 @@ function AITutor() {
         },
       ]);
     } catch (error) {
+      console.error(error);
+
       setMessages((prev) => [
         ...prev,
         {
           question: currentQuestion,
           answer:
-            "❌ Unable to connect to the AI server. Please try again.",
+            "❌ Unable to connect to the AI server. Please try again later.",
         },
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const copyAnswer = (text: string) => {
@@ -120,7 +129,7 @@ function AITutor() {
 
             <button
               className="ask-btn"
-              style={{ marginTop: 15 }}
+              style={{ marginTop: "15px" }}
               onClick={() => copyAnswer(msg.answer)}
             >
               📋 Copy Answer

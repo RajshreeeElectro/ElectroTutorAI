@@ -12,7 +12,7 @@ function AITutor() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-
+  const [error, setError] = useState("");
   const handleAsk = async () => {
     if (!question.trim()) {
       alert("Please enter a question.");
@@ -53,7 +53,7 @@ function AITutor() {
       ]);
     } catch (error) {
       console.error(error);
-
+setError("❌ Could not reach the AI. Please try again.");
       setMessages((prev) => [
         ...prev,
         {
@@ -109,6 +109,21 @@ function AITutor() {
             onClick={() => setMessages([])}
             disabled={messages.length === 0}
           >
+            {error && (
+  <div className="error-box">
+    {error}
+
+    <button
+      className="retry-btn"
+      onClick={() => {
+        setError("");
+        handleAsk();
+      }}
+    >
+      Retry
+    </button>
+  </div>
+)}
             🗑 Clear Chat
           </button>
         </div>
@@ -138,10 +153,10 @@ function AITutor() {
         ))}
 
         {loading && (
-          <div className="loading">
-            🤖 Thinking...
-          </div>
-        )}
+  <div className="loading">
+    🤖 Thinking<span className="dots">...</span>
+  </div>
+)}
       </div>
     </div>
   );

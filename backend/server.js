@@ -10,16 +10,7 @@ if (!process.env.GROQ_API_KEY) {
 
 const app = express();
 
-app.use(
-  cors({
-    origin: [
-      "https://electrotutorai.vercel.app",
-      "http://localhost:5173",
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use(express.json());
 

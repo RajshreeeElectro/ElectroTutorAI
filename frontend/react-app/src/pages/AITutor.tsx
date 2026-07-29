@@ -15,8 +15,10 @@ function AITutor() {
   const [error, setError] = useState("");
   const handleAsk = async () => {
     if (!question.trim()) {
+      console.log("HANDLE ASK CALLED");
+      if (!question.trim()){
       alert("Please enter a question.");
-      return;
+      return;}
     }
 
     const currentQuestion = question;
